@@ -1,8 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-// const API_URL = 'http://192.168.29.78:8000';
+// const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = 'http://192.168.29.78:8001';
 
 // ============================================================
 // 🔑 TOKEN HELPER (Only added — nothing else changed)
@@ -20,6 +20,20 @@ export const allClassFetch = async (search) => {
     const response = await axios.get(`${API_URL}/class/?search=${search}`);
     return response;
   } catch (error) {
+    throw error;
+  }
+};
+
+// ============================================================
+// 🆕 SENTENCE OF THE DAY API (Dynamic)
+// ============================================================
+export const fetchSentence = async (id = 1) => {
+  try {
+
+    const response = await axios.get(`${API_URL}/sentence/${id}/`);
+    return response.data; // Isme { id, title, description, part_of_speech, image } aayega
+  } catch (error) {
+    console.error("❌ Error fetching sentence:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -228,17 +242,18 @@ export const updateProfileImage = async (selectedImage) => {
       });
     }
 
-    const response = await axios.put(
-      `${API_URL}/update-profile-image/`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
-        timeout: 30000,
-      }
-    );
+const response = await axios.put(
+  `${API_URL}/update-profile-image/`,
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 60000,
+  }
+);
 
     console.log('✅ UPLOAD RESPONSE:', response.data);
     return response.data;
@@ -279,6 +294,150 @@ export const refreshAccessToken = async () => {
     throw new Error('Naya access token nahi mila.');
   } catch (error) {
     console.error('❌ refreshAccessToken error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+// ============================================================
+// 🆕 INSPIRATION API
+// ============================================================
+export const fetchInspiration = async (date) => {
+  try {
+    // Agar date pass nahi ki, to aaj ki date use karo (YYYY-MM-DD format)
+    const targetDate = date || new Date().toISOString().split('T')[0];
+    
+    // ✅ Yahan change kiya gaya hai: params object use kiya hai
+    const response = await axios.get(`${API_URL}/inspiration/`, {
+      params: {
+        date: targetDate,
+      },
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error fetching inspiration:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// ============================================================
+// 🆕 INSPIRATION REACTION API
+// ============================================================
+export const postInspirationReaction = async (inspirationId, reactionType) => {
+  try {
+    const token = await getToken('access'); // Aapka existing token helper
+
+    const response = await axios.post(
+      `${API_URL}/inspiration/reaction/`,
+      {
+        inspiration_id: inspirationId,
+        reaction: reactionType, // 'like' ya 'dislike'
+      },
+      {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error posting reaction:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+export const postComment = async (inspirationId, commentText) => {
+  try {
+    const token = await getToken('access');
+    const response = await axios.post(
+      `${API_URL}/add-comment/`,
+      {
+        inspiration_id: inspirationId, // 👈 Yahan 'inspiration' ki jagah 'inspiration_id' hoga
+        comment: commentText,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 2️⃣ GET: Purane Comments Fetch karna
+export const fetchComments = async (inspirationId) => {
+  try {
+    const token = await getToken('access');
+    const response = await axios.get(
+      `${API_URL}/inspiration/comments/${inspirationId}/`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+
+
+// ============================================================
+// 🆕 WORD OF THE DAY REACTION API
+// ============================================================
+export const postWordReaction = async (sentenceId, reactionType) => {
+  try {
+    // const token = await getToken('access');
+      const token = await getToken('access'); 
+    if (!token) throw new Error("Please login to like or dislike.");
+
+    const response = await axios.post(
+      `${API_URL}/word-of-day/reaction/`,
+      {
+        sentence_id: sentenceId,
+        reaction: reactionType, 
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error posting word reaction:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// ============================================================
+// 🆕 WORD OF THE DAY COMMENT API (Postman ke hisaab se)
+// ============================================================
+export const postWordComment = async (wordId, commentText) => {
+  try {
+    const token = await getToken('access');
+    if (!token) throw new Error("Please login to comment.");
+    console.log("🔑 Posting comment with token:", token);
+
+    const response = await axios.post(
+      `${API_URL}/word-of-day/comment/`,
+      {
+        word_id: wordId,          // 👈 Postman ke hisaab se word_id
+        comment: commentText      // 👈 Postman ke hisaab se comment
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error posting comment:", error.response?.data || error.message);
     throw error;
   }
 };

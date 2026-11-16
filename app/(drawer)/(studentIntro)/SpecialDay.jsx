@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
 
   // 4️⃣ BUTTON
   buttonContainer: {
-    marginTop: height * 0.25,
+    marginTop: height * 0.27,
     alignItems: 'center',
   },
   continueButton: {

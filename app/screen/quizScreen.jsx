@@ -518,8 +518,8 @@ const checkLockAndStart = async () => {
 
       <View style={styles.timerContainer}>
         <AnimatedCircularProgress
-          size={100}
-          width={10}
+          size={65}
+          width={5}
           fill={(timer / 30) * 100}
           tintColor={timer < 10 ? '#ff6b6b' : COLOR.background}
           backgroundColor="#d9f7f4"
@@ -532,7 +532,9 @@ const checkLockAndStart = async () => {
           )}
         </AnimatedCircularProgress>
 
-        <Text style={styles.question}>{currentQuestion.question}</Text>
+        <Text style={styles.question}>
+          Q.{currentQuestion.question}
+          </Text>
       </View>
 
       <View style={styles.optionsContainer}>
@@ -563,7 +565,7 @@ const checkLockAndStart = async () => {
                     },
                   ]}
                 >
-                  {option}
+                 {index +1}. {option}
                 </Text>
               </TouchableOpacity>
             )
@@ -583,7 +585,7 @@ const checkLockAndStart = async () => {
             ? 'Submitting...'
             : isLastQuestion
             ? 'FINISH TEST'
-            : 'SUBMIT ANSWER'}
+            : 'ANSWER'}
         </Text>
       </TouchableOpacity>
 
@@ -765,7 +767,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   timer: {
-    marginBottom: 10,
+    marginBottom: 8,
+    marginStart: -10,
   },
   timerText: {
     fontSize: 24,

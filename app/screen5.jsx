@@ -214,11 +214,12 @@ textContainer: {
 
   buttonContainer: {
   position: 'absolute',              // ✅ ADD
-  bottom: height * 0.05,            // ✅ ADD
+  bottom: height * 0.15,            // ✅ ADD
   left: width * 0.05,               // ✅ ADD
   right: width * 0.05,              // ✅ ADD
   flexDirection: 'row',
-  justifyContent: 'space-between',
+  justifyContent: 'center',
+  gap: width * 0.10,                 // ✅ ADD
 },
 
   signInButton: {

@@ -156,6 +156,11 @@ export const withdrawPayment = async (data) => {
 export const getWalletBalance = async () => {
   const token = await AsyncStorage.getItem("access");
 
+    if (!token) {
+    console.log("❌ No access token found in AsyncStorage");
+    throw new Error("No token");   // ya redirect to login
+  }
+
   const response = await axios.get(`${API_URL}/cashback-summary/`, {
     headers: {
       Authorization: `Bearer ${token}`,

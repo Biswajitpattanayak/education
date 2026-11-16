@@ -260,6 +260,7 @@ export default function Index() {
   const [earningPoints, setEarningPoints] = useState(0);
   const [userRank, setUserRank] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [profileImage, setProfileImage] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -268,6 +269,7 @@ export default function Index() {
         if (userData) {
           const parsedData = JSON.parse(userData);
           setUserName(parsedData);
+          setProfileImage(parsedData?.image || '');
         }
 
         const totalPoints = await fetchUserPoints();
@@ -298,12 +300,14 @@ export default function Index() {
         >
           <View style={styles.topContainer}>
             {/* Profile Image */}
-            <Image
-              source={{
-                uri: 'https://www.icon0.com/free/static2/preview2/stock-photo-little-boy-faces-children-avatar-people-icon-character-cartoon-32990.jpg',
-              }}
-              style={styles.profileImage}
-            />
+
+
+{profileImage ? (
+  <Image
+    source={{ uri: profileImage }}
+    style={styles.profileImage}
+  />
+) : null}
 
             {/* Greeting + Name + Premium */}
             <View style={styles.middleContainer}>
@@ -496,5 +500,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#7C3AED',
+    textColor: '#7C3AED',
   },
 });
