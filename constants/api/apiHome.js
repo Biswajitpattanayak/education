@@ -1,8 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_URL = 'http://192.168.29.78:8001';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+// const API_URL = 'http://192.168.29.78:8001';
 
 // ============================================================
 // 🔑 TOKEN HELPER (Only added — nothing else changed)
@@ -24,27 +24,31 @@ export const allClassFetch = async (search) => {
   }
 };
 
-// ============================================================
-// 🆕 SENTENCE OF THE DAY API (Dynamic)
-// ============================================================
-export const fetchSentence = async (id = 1) => {
-  try {
 
-    const response = await axios.get(`${API_URL}/sentence/${id}/`);
-    return response.data; // Isme { id, title, description, part_of_speech, image } aayega
+// ============================================================
+// 🆕 SENTENCE OF THE DAY API (Clean & Professional)
+// ============================================================
+export const fetchSentenceOfTheDay = async () => {
+  try {
+    const token = await getToken('access');
+    
+    // Fetching from the list endpoint (backend should return today's word based on user)
+    // If your backend only supports /sentence/1/, change the URL below to: `${API_URL}/sentence/1/`
+    const response = await axios.get(`${API_URL}/sentence/`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    // Handle both paginated (results) and non-paginated array responses
+    const dataList = response.data?.results ?? response.data ?? [];
+    
+    // Return the first item (or find one where is_delivered_today is true)
+    if (Array.isArray(dataList) && dataList.length > 0) {
+      return dataList.find(item => item.is_delivered_today) || dataList[0];
+    }
+    
+    return dataList;
   } catch (error) {
     console.error("❌ Error fetching sentence:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-export const fetchSubject = async ({ id, search }) => {
-  try {
-    const response = await axios.get(
-      `${API_URL}/class/${id}/subjects/?search=${search}`
-    );
-    return response;
-  } catch (error) {
     throw error;
   }
 };
@@ -389,15 +393,14 @@ export const fetchComments = async (inspirationId) => {
 // ============================================================
 export const postWordReaction = async (sentenceId, reactionType) => {
   try {
-    // const token = await getToken('access');
-      const token = await getToken('access'); 
+    const token = await getToken('access');
     if (!token) throw new Error("Please login to like or dislike.");
 
     const response = await axios.post(
       `${API_URL}/word-of-day/reaction/`,
       {
-        sentence_id: sentenceId,
-        reaction: reactionType, 
+        word_id: sentenceId,        // ✅ changed from sentence_id
+        reaction: reactionType,
       },
       {
         headers: {
